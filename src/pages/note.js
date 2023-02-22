@@ -4,25 +4,27 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 const Note = ({navigation, route}) => {
-
     const noteKey = route.params.name;
-
-    const value = AsyncStorage.getItem(noteKey)
-
-
     const savedState = () => {
-        value.then(savedNote => {
-            setText(savedNote);
+
+        AsyncStorage.getItem(noteKey).then(savedNote => {
+            if (savedNote !== undefined) {
+                setText(savedNote);
+            } else {
+                setText("");
+            }
         });
-    }
+
+    };
+
     const storeData = async (value) => {
         try {
             await AsyncStorage.setItem(noteKey, value)
         } catch (e) {
             // saving error
         }
-    }
 
+    };
 
     // UseStateHook
     const [text, setText] = React.useState();
@@ -31,8 +33,9 @@ const Note = ({navigation, route}) => {
         storeData(text).then();
     });
 
-    // [] makes it run once cause it have no dependecies
     useEffect(savedState, []);
+
+
     return (
         <View style={styles.noteContainer}>
             <TextInput
@@ -43,6 +46,7 @@ const Note = ({navigation, route}) => {
         </View>
     );
 };
+
 
 const styles = StyleSheet.create({
     noteContainer: {
