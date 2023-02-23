@@ -5,8 +5,14 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Note = ({navigation, route}) => {
     const noteKey = route.params.name;
-    const savedState = () => {
 
+    React.useEffect(() => {
+        console.log(noteKey)
+    }, [])
+
+
+
+    const savedState = () => {
         AsyncStorage.getItem(noteKey).then(savedNote => {
             if (savedNote !== undefined) {
                 setText(savedNote);
@@ -23,7 +29,6 @@ const Note = ({navigation, route}) => {
         } catch (e) {
             // saving error
         }
-
     };
 
     // UseStateHook

@@ -1,40 +1,43 @@
 import {Button, StyleSheet, Text, TextInput, View} from "react-native"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import React from "react";
+import {collection, addDoc, getDocs} from "firebase/firestore";
+import {db} from "../config/firebase";
 
 const HomeScreen = ({navigation}) => {
-
     const [notes, setNote] = React.useState([]);
     const [name, setName] = React.useState("");
 
+    // loads notes in
+    React.useEffect(getNotes,[])
 
-    // deletes all notes
-    const jsonNote = JSON.stringify([]);
-    AsyncStorage.setItem('@myNotes', jsonNote);
-
-    const getData = async () => {
-        const jsonValue = await AsyncStorage.getItem('@myNotes')
-        return jsonValue != null ? JSON.parse(jsonValue) : null
+    async function getNotes() {
+        console.log("Getting alle notes")
+        const snapshot = await getDocs(collection(db, "notes"));
+        snapshot.forEach(note => {
+            const newNote = note.data();
+            newNote["key"] = note.id
+            setNote(prevState => [...prevState, newNote]);
+        })
     }
-    // sets list of notes from storage
-    getData().then(listOfNotes => {
-        if (listOfNotes !== null) {
-            setNote(prevState => [
-                ...prevState, ...listOfNotes
-            ]);
+
+    function createNote() {
+        // name comes from useState
+        const title = name
+
+        let newNote = {
+            title: title,
+            note: ""
         }
-    })
-    async function createNewNote() {
-        if (name !== "") {
-            // lazy but it works for this small task
-            const newNote = {
-                title: name,
-                key: "@" + Math.floor(Math.random() * 100000)
-            }
-            const notesToBeSaved = notes.push(newNote)
-            // sets storage
-            const jsonNote = JSON.stringify(notesToBeSaved);
-            await AsyncStorage.setItem('@myNotes', jsonNote);
+
+
+        if (name.length !== 0) {
+            addDoc(collection(db, "notes"), newNote).then(r => {
+                newNote["id"] = r.id;
+                setNote(prevState => [...prevState, newNote]);
+            })
+        } else {
+            console.log("dont create a note with no title");
         }
     }
 
@@ -44,27 +47,21 @@ const HomeScreen = ({navigation}) => {
                 {
                     notes.map((note, index) => (
                         <View key={index} style={styles.create}>
-                            <Button key={index} title={note.title}
+                            <Button title={note.title}
                                     onPress={() => navigation.navigate('Note', {name: note.key})}/>
                         </View>
                     ))
                 }
             </View>
             <View style={styles.create}>
-                <TextInput
-                    style={styles.textbox}
-                    onChangeText={setName}
-                    value={name}
-                />
-
-                <Button
-                    title="Create new note"
-                    onPress={createNewNote}
-                />
+                <TextInput style={styles.textbox} onChangeText={setName} value={name}/>
+                <Button title="add new note firsbae" onPress={createNote}/>
             </View>
 
         </View>
     );
+
+
 };
 
 
