@@ -37,10 +37,6 @@ const Note = ({navigation, route}) => {
     useEffect(() => {
         storeData(text).then();
     });
-
-    useEffect(savedState, []);
-
-
     return (
         <View style={styles.noteContainer}>
             <TextInput
